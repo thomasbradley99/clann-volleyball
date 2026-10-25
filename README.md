@@ -77,10 +77,24 @@ more only where something is provably wrong. Nothing in it is specific to this m
 **Limits:** it is validated on one match so far (one camera, one venue, one pair of teams).
 Shirt number is the weakest tier.
 
+## Setup
+
+```
+pip install -U google-genai          # plus ffmpeg on PATH
+echo "GEMINI_API_KEY=..." > .env
+python3 team_sheet.py                # read shirt numbers per side from the video
+python3 evo5_kit/evaluate.py         # score a system.py against the scout sheet
+python3 evo5_kit/code_evolve.py --gens 5   # run the evolution (needs Claude Code for the agents)
+```
+
+The match video and the scout's sheet are not included in the repo.
+
 ## Repo
 
 | Path | What it is |
 |---|---|
+| `final_system.py` | the evolved system |
+| `results/` | every candidate's score and verdict, the agents' notes, set-3 hold-out scores |
 | `evo5_kit/` | the evolution loop (`code_evolve.py`), the toolbox, the evaluator, the sandbox smoke test |
 | `evo5_page.py` | builds the evolution site: one dot per system, click for the code diff and the agent's report |
 | `team_sheet.py` | reads the shirt numbers per side from the video |
