@@ -95,6 +95,7 @@ The match video and the scout's sheet are not included in the repo.
 
 | Path | What it is |
 |---|---|
+| `scout/` | **run it**: standalone `scout_match.py` (video in, sheet out), Lambda handler, Dockerfile, `HANDOFF.md` |
 | `final_system.py` | the evolved system |
 | `results/` | every candidate's score and verdict, the agents' notes, set-3 hold-out scores |
 | `evo5_kit/` | the evolution loop (`code_evolve.py`), the toolbox, the evaluator, the sandbox smoke test |
