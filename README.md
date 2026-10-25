@@ -99,6 +99,5 @@ The match video and the scout's sheet are not included in the repo.
 | `evo5_page.py` | builds the evolution site: one dot per system, click for the code diff and the agent's report |
 | `team_sheet.py` | reads the shirt numbers per side from the video |
 | `score.py` | the scorer: maximum matching against the scout's sheet |
-| `FINDINGS.md` | the full lab notebook, from the first prompt to the final system |
 
 Next: a second match with a different venue and camera, then the same loop on Gaelic football.
