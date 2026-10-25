@@ -1,5 +1,7 @@
 # Self-checking volleyball scouting, evolved by coding agents
 
+## ▶ [Open the interactive evolution site](https://thomasbradley99.github.io/clann-volleyball/evolve.html#1)
+
 A volleyball scout tags every touch of a match by hand: the time, the action, the team and the
 shirt number. That takes hours per match. This system watches the match video with Gemini 4 Argon
 and produces the same sheet. It was then improved by an evolutionary loop in which coding agents

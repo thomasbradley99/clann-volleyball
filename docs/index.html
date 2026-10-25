@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evolving the scout</title>
+<style>
+  :root { --bg: #0e1116; --panel: #1c1c1e; --text: #f5f5f7; --dim: rgba(235,235,245,.6); --accent: #0a84ff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+               font: 14px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif; }
+  .bar { height: 56px; display: flex; align-items: center; justify-content: center; gap: 4px;
+         border-bottom: .5px solid rgba(84,84,88,.6); }
+  .seg { display: flex; background: var(--panel); border-radius: 10px; padding: 3px; }
+  .seg button { border: 0; background: transparent; color: var(--dim); font: inherit; font-weight: 600;
+                padding: 8px 18px; border-radius: 8px; cursor: pointer; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  iframe { display: block; width: 100%; height: calc(100% - 56px); border: 0; }
+  .sum { max-width: 1100px; margin: 0 auto; padding: 28px 16px 8px; display: none; }
+  body.p2 .sum { display: block; }
+  body.p2 { height: auto; } body.p2 iframe { height: 100vh; }
+  .sum h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 4px; }
+  .sum .lead { color: var(--dim); font-size: 15px; margin: 0 0 18px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .tile { background: var(--panel); border-radius: 14px; padding: 12px 14px; }
+  .tile .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tile .v em { font-style: normal; color: #30d158; }
+  .tile .k { color: var(--dim); font-size: 12px; margin-top: 2px; }
+  .sum h3 { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 26px 0 10px; }
+  .tl { display: grid; gap: 8px; }
+  .g { display: grid; grid-template-columns: 64px 1fr 92px; gap: 12px; align-items: center;
+       background: var(--panel); border-radius: 14px; padding: 12px 14px; }
+  .g .n { font-weight: 700; color: var(--accent); }
+  .g b { display: block; font-size: 15px; }
+  .g span { color: var(--dim); font-size: 13px; }
+  .g .d { text-align: right; font-weight: 700; color: #30d158; font-variant-numeric: tabular-nums; }
+  .pipe { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pipe i { font-style: normal; background: var(--panel); border-radius: 999px; padding: 7px 13px; font-weight: 600; }
+  .pipe i.new { box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .pipe s { text-decoration: none; color: var(--dim); }
+  .fail { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
+  .fail div { background: var(--panel); border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--dim); }
+  .fail b { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }
+  .g code { background: rgba(118,118,128,.24); padding: 1px 5px; border-radius: 5px; font-size: 12px; color: var(--text); }
+  .g { grid-template-columns: 64px 1fr 120px; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="seg">
+    <button data-p="evolution.html">1 · Evolutionary algorithm</button>
+    <button data-p="code.html">2 · Full evolutionary system</button>
+  </div>
+</div>
+<section class="sum">
+  <h2>What the agents invented</h2>
+  <p class="lead">15 systems written by coding agents in 3 hours. 4 survived. Scored on part of the match they never saw:</p>
+  <div class="tiles">
+    <div class="tile"><div class="v">0.78 &rarr; <em>0.84</em></div><div class="k">overall</div></div>
+    <div class="tile"><div class="v">85 &rarr; <em>91%</em></div><div class="k">touches found</div></div>
+    <div class="tile"><div class="v">84 &rarr; <em>88%</em></div><div class="k">right action + team</div></div>
+    <div class="tile"><div class="v">62 &rarr; <em>70%</em></div><div class="k">right shirt number</div></div>
+    <div class="tile"><div class="v">17 &rarr; <em>9</em></div><div class="k">invented touches</div></div>
+    <div class="tile"><div class="v"><em>&minus;16%</em></div><div class="k">cost to run</div></div>
+  </div>
+
+  <h3>The good ideas, and what each one did</h3>
+  <div class="tl">
+    <div class="g"><div class="n">Gen 1</div><div><b>The serve happens at the hit, not the toss</b><span>Every serve was stamped ~0.6 s early, so shift it. Stage: <code>serve timing</code></span></div><div class="d">+3.5 pts</div></div>
+    <div class="g"><div class="n">Gen 1</div><div><b>Overlapping clips see the same touch twice</b><span>Merge same action + team within 1.2 s. Stage: <code>merge</code></span></div><div class="d">(same gen)</div></div>
+    <div class="g"><div class="n">Gen 2</div><div><b>A number not on the roster is wrong by definition</b><span>Zoom into that team's half and pick from the roster: multiple choice, not guessing. Stage: <code>fix_numbers</code></span></div><div class="d">+4 pts numbers</div></div>
+    <div class="g"><div class="n">Gen 3</div><div><b>A cheap model as the bouncer</b><span>Skip clips where no point is being played. Also caught warm-up hitting logged as a rally. Stage: <code>live_clips</code></span></div><div class="d">&minus;16% cost<br>28&rarr;18 invented</div></div>
+    <div class="g"><div class="n">Gen 5</div><div><b>A rally can't end on a dig</b><span>Find rallies that break volleyball's rules in its own log; all 5 flagged hid real missed touches. Re-watch just those seconds. Stage: <code>fill_rallies</code></span></div><div class="d">18&rarr;14 missed<br>0 new invented</div></div>
+    <div class="g"><div class="n">Gen 5</div><div><b>New touches must fit rally order</b><span>A dig answers the other team's attack; an attack follows your own team's touch. Why gen 4's version failed and this one didn't. Stage: <code>in_order</code></span></div><div class="d">(same gen)</div></div>
+  </div>
+
+  <h3>The architecture it evolved</h3>
+  <div class="pipe"><i>Team sheet</i><s>&rarr;</s><i class="new">Dead-time filter</i><s>&rarr;</s><i>Argon scout</i><s>&rarr;</s><i class="new">De-duplicate</i><s>&rarr;</s><i class="new">Rule check + re-watch</i><s>&rarr;</s><i class="new">Number check + re-read</i></div>
+  <p class="lead" style="margin-top:10px">One wide pass, then it checks itself and spends only where it's provably wrong. Blue = invented by the agents.</p>
+
+  <h3>What it learned not to do</h3>
+  <div class="fail">
+    <div><b>Cheap model as the scout</b>Tried 4 times. Shirt numbers collapsed every time.</div>
+    <div><b>Fewer frames</b>Cheaper, but numbers drop. Frames are the accuracy.</div>
+    <div><b>Re-check every number</b>Fixes 8 for every 1 it breaks, but costs more than it gains.</div>
+    <div><b>Re-watch every gap</b>Invents touches. Only re-watch where the rules are broken.</div>
+  </div>
+  <h3>Every system it wrote</h3>
+</section>
+<iframe id="f" title="Evolution"></iframe>
+<script>
+const f = document.getElementById("f"), bs = [...document.querySelectorAll(".seg button")];
+function show(p) {
+  bs.forEach(b => b.classList.toggle("on", b.dataset.p === p));
+  document.body.classList.toggle("p2", p === "code.html");
+  if (!f.src.endsWith(p)) f.src = p;
+  try { history.replaceState(null, "", "#" + (p === "code.html" ? "2" : "1")); } catch (e) {}
+}
+bs.forEach(b => b.onclick = () => show(b.dataset.p));
+show(location.hash === "#2" ? "code.html" : "evolution.html");
+</script>
+</body>
+</html>

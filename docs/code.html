@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full evolutionary system</title>
+<style>
+:root{--bg:#f5f5f3;--card:#fff;--ink:#1d1d1f;--ink2:#55555a;--muted:#8a8a90;--line:#e4e4e0;
+  --accent:#2a6fdb;--accent-soft:#e2ecfc;--rej:#c2c2c7;--edge:#d6d6d2;
+  --ok:#1f8a4c;--ok-soft:#e4f4ea;--bad:#c4372f;--bad-soft:#fbe7e5;--warn:#b26a00;--warn-soft:#fbefdc}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111113;--card:#1b1b1e;--ink:#f2f2f4;--ink2:#b6b6bc;
+  --muted:#85858c;--line:#2c2c31;--accent:#6ea0ff;--accent-soft:#1f2c44;--rej:#55555c;--edge:#34343a;
+  --ok:#4cc27e;--ok-soft:#173022;--bad:#ff7b72;--bad-soft:#3a1d1b;--warn:#e0a040;--warn-soft:#352715}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:14.5px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",sans-serif}
+main{max-width:1240px;margin:0 auto;padding:22px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:26px;margin:0;letter-spacing:-.015em}.sub{color:var(--ink2);margin:2px 0 0;max-width:720px}
+.stats{display:flex;gap:18px;flex-wrap:wrap}.stat .v{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums}
+.stat .k{color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+#graphCard{padding:10px 10px 6px}svg{display:block;width:100%;height:auto}svg text{fill:var(--muted);font-size:11px}
+.node{cursor:pointer;transition:r .15s}.node:hover{stroke:var(--ink);stroke-width:2}
+.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink2);font-size:12.5px;padding:2px 8px 6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#detail{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px}
+@media (max-width:900px){#detail{grid-template-columns:1fr}}
+.pane{padding:16px}.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.top h2{margin:0;font-size:20px}.pill{font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink2)}
+.pill.kept{background:var(--accent);color:#fff;border-color:var(--accent)}.pill.conf{border-color:var(--accent);color:var(--accent)}
+.big{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:8px}
+.delta{font-size:15px;font-weight:600;margin-left:8px}.up{color:var(--ok)}.down{color:var(--bad)}.flat{color:var(--muted)}
+.bars{margin:12px 0 4px}.bar{display:grid;grid-template-columns:62px 1fr 92px;align-items:center;gap:10px;margin:7px 0}
+.bar .n{color:var(--ink2);font-size:13px}.track{position:relative;height:10px;border-radius:6px;background:var(--bg)}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--accent)}
+.tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink2);opacity:.6}
+.bar .val{font-variant-numeric:tabular-nums;font-size:13px;text-align:right}
+.mix{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+.mix div{background:var(--bg);border-radius:12px;padding:8px 6px;text-align:center}
+.mix .e{font-size:18px}.mix .c{font-weight:650;font-size:17px;font-variant-numeric:tabular-nums}.mix .l{font-size:11px;color:var(--muted)}
+.mix .d{font-size:12px;font-weight:600}
+.sec{margin-top:16px}.sec h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.sec p{margin:0}.pvm{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pvm>div{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13.5px}
+@media (max-width:600px){.pvm{grid-template-columns:1fr}.mix{grid-template-columns:repeat(3,1fr)}}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}
+td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right}td:first-child,th:first-child{text-align:left}
+th{color:var(--muted);font-weight:500;font-size:12px}
+video{width:100%;border-radius:12px;background:#000;aspect-ratio:16/9}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px}.chips button{border:1px solid var(--line);background:var(--card);
+  color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:12.5px}.chips button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+#events{max-height:430px;overflow:auto;border-top:1px solid var(--line)}
+.ev{display:grid;grid-template-columns:62px 24px 1fr 1fr;gap:6px;padding:5px 4px;border-bottom:1px solid var(--line);
+  cursor:pointer;font-size:13px;align-items:center}.ev:hover{background:var(--bg)}.ev .t{font-variant-numeric:tabular-nums;color:var(--ink2)}
+.ev.v-ok{} .ev.v-invented{background:var(--bad-soft)} .ev.v-missed{background:var(--warn-soft)}
+.ev.v-wrong_action,.ev.v-wrong_team{background:var(--accent-soft)}
+.tag{display:inline-block;padding:0 6px;border-radius:6px;font-size:12px;margin-right:4px}
+.tag.white{background:#eee;color:#333}.tag.blue{background:#d6e4ff;color:#1d3f8f}
+.none{color:var(--muted)}.num.ok{color:var(--ok)}.num.bad{color:var(--bad)}
+.diff{font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:380px;overflow:auto;background:var(--bg);
+  border-radius:12px;padding:10px;white-space:pre-wrap}.diff .a{background:var(--ok-soft);color:var(--ok)}
+.diff .r{background:var(--bad-soft);color:var(--bad);text-decoration:line-through}.diff .s{color:var(--ink2)}
+.lessons{margin:0;padding-left:18px;font-size:13.5px}.lessons li{margin-bottom:5px}
+a{color:var(--accent)}.full{grid-column:1/-1}
+</style></head><body><main>
+<header><div><h1>Full evolutionary system</h1>
+<p class="sub">Each dot is one version of the whole system as code, rewritten by a coding agent from the errors of the one before, then scored against a human scout: set 1 (errors shown) and set 2 (never shown). Click any dot.</p></div>
+<div class="stats" id="stats"></div></header>
+<div class="card" id="graphCard"><svg id="graph" viewBox="0 0 1200 430" role="img" aria-label="Evolution graph"></svg>
+<div class="legend"><span><i style="background:var(--accent)"></i>kept: became the new parent</span>
+<span><i style="border:2px solid var(--accent)"></i>looked better, failed its second run</span>
+<span><i style="background:var(--rej)"></i>rejected</span><span><i style="background:var(--ink)"></i>start (seed system)</span></div></div>
+<div id="detail"></div>
+</main>
+<script>
+const EMO = {ok:["✅","found"], wrong_team:["🔁","wrong team"], wrong_action:["🏷️","wrong action"], missed:["⚠️","missed"], invented:["❌","invented"]};
+const TIERS = [["overall","Overall"],["time","Time"],["action","+ Action"],["team","+ Team"],["number","+ Number"]];
+const pct = x => x == null ? "—" : (100 * x).toFixed(1);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clock = t => t == null ? "" : `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
+let IDX = null, SEL = null, FILTER = "errors", DET = null;
+
+function deltaHTML(v, p, pts = true, invert = false) {
+  if (p == null || v == null) return "";
+  const d = v - p, good = invert ? d < 0 : d > 0;
+  const txt = pts ? (d >= 0 ? "+" : "") + (100 * d).toFixed(1) : (d >= 0 ? "+" : "") + d;
+  return `<span class="delta ${Math.abs(d) < 1e-9 ? "flat" : good ? "up" : "down"}">${txt}</span>`;
+}
+
+function drawGraph() {
+  const svg = document.getElementById("graph"), W = 1200, H = 430, L = 46, R = 20, T = 18, B = 34;
+  const evo = IDX.nodes.filter(n => n.gen != null);
+  const maxG = Math.max(1, ...evo.map(n => n.gen));
+  const vals = evo.map(n => n.tiers.overall);
+  const lo = Math.floor((Math.min(...vals) - .015) * 50) / 50, hi = Math.ceil((Math.max(...vals) + .015) * 50) / 50;
+  const x = (g, k, n) => L + (W - L - R) * (g + .5) / (maxG + 1) + (n > 1 ? (k - (n - 1) / 2) * 16 : 0);
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const byGen = {}; evo.forEach(n => (byGen[n.gen] = byGen[n.gen] || []).push(n));
+  const pos = {}; evo.forEach(n => { const g = byGen[n.gen]; pos[n.id] = [x(n.gen, g.indexOf(n), g.length), y(n.tiers.overall)]; });
+  let s = "";
+  for (let v = lo; v <= hi + 1e-9; v += .02) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>` +
+    `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${(100 * v).toFixed(0)}</text>`;
+  for (let g = 0; g <= maxG; g++) s += `<text x="${x(g, 0, 1)}" y="${H - 10}" text-anchor="middle">${g ? "gen " + g : "start"}</text>`;
+  s += `<text x="${L}" y="${T - 5}">OVERALL F1 %</text>`;
+  evo.forEach(n => { if (!n.parent || !pos[n.parent]) return; const [x1, y1] = pos[n.parent], [x2, y2] = pos[n.id];
+    const mx = (x1 + x2) / 2;
+    s += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${n.verdict === "KEPT" ? "var(--accent)" : "var(--edge)"}" stroke-width="${n.verdict === "KEPT" ? 2.5 : 1.2}"/>`; });
+  evo.forEach(n => { const [cx, cy] = pos[n.id], sel = SEL === n.id;
+    const tip = `${n.gen ? "gen " + n.gen + " · idea " + n.k + (n.part ? " (" + n.part + ")" : "") : n.label || "start " + n.k}: ${pct(n.tiers.overall)} (${n.verdict})${n.cost_match ? " · ~$" + n.cost_match + "/match" : ""}`;
+    const ring = sel ? `<circle cx="${cx}" cy="${cy}" r="13" fill="none" stroke="var(--ink)" stroke-width="2"/>` : "";
+    const dot = n.verdict === "start" ? `<circle class="node" data-id="${n.id}" cx="${cx}" cy="${cy}" r="6" fill="var(--ink)"/>`
+      : n.verdict === "KEPT" ? `<circle class="node" data-id="${n.id}" cx="${cx}" cy="${cy}" r="8" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/>`
+      : n.verdict.includes("confirm") ? `<circle class="node" data-id="${n.id}" cx="${cx}" cy="${cy}" r="6.5" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5"/>`
+      : `<circle class="node" data-id="${n.id}" cx="${cx}" cy="${cy}" r="6" fill="var(--rej)"/>`;
+    s += ring + dot.replace("/>", `><title>${esc(tip)}</title></circle>`); });
+  svg.innerHTML = s;
+  svg.onclick = e => { const id = e.target.dataset && e.target.dataset.id; if (id) select(id); };
+  const evoOnly = evo.filter(n => n.gen > 0);
+  document.getElementById("stats").innerHTML = [[pct(IDX.start_overall), "start"], [pct(IDX.best_overall), "best"],
+    [Math.max(0, ...evo.map(n => n.gen)), "generations"], [evoOnly.length, "prompts tested"],
+    [evoOnly.filter(n => n.verdict === "KEPT").length, "kept"], ["$" + Math.round(IDX.spent || 0), "spent"]]
+    .map(([v, k]) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
+}
+
+async function select(id) {
+  SEL = id; drawGraph();
+  const n = IDX.nodes.find(x => x.id === id);
+  DET = await (await fetch(`evo5data/run_${id.replace("/", "_")}.json?${Date.now()}`)).json();
+  renderDetail(n, DET);
+}
+
+function lbl(x, other, isAI) {
+  if (!x) return `<span class="none">—</span>`;
+  const [type, team, num] = x;
+  const cls = isAI && num ? (other && String(num) === String(other[2]) ? "ok" : "bad") : "";
+  return `<b>${type}</b> <span class="tag ${team}">${team}</span><span class="num ${cls}">${num ? "#" + num : ""}</span>`;
+}
+
+function renderEvents() {
+  const want = FILTER === "all" ? null : FILTER === "errors" ? ["missed", "invented", "wrong_action", "wrong_team"] : [FILTER];
+  const rows = DET.events.filter(e => !want || want.includes(e[2]));
+  document.getElementById("events").innerHTML = rows.map(e => { const t = e[0] ?? e[1];
+    return `<div class="ev v-${e[2]}" data-t="${t}" title="${EMO[e[2]][1]}"><span class="t">${clock(t)}</span><span>${EMO[e[2]][0]}</span>
+      <span>${lbl(e[3], e[4], true)}</span><span>${lbl(e[4], e[3], false)}</span></div>`; }).join("") ||
+    `<div class="ev"><span></span><span></span><span class="none">nothing in this filter</span></div>`;
+}
+
+function renderDetail(n, d) {
+  const pt = d.parent_tiers, pc = d.parent_counts;
+  const title = n.gen == null ? n.label : n.gen === 0 ? `Start · ${n.label || "naive run " + n.k}` : `Generation ${n.gen} · idea ${n.k}`;
+  const pill = n.verdict === "KEPT" ? `<span class="pill kept">✅ kept</span>` : n.verdict.includes("confirm") ?
+    `<span class="pill conf">looked better · failed 2nd run (${pct(n.confirm)})</span>` : `<span class="pill">${esc(n.verdict)}</span>`;
+  const bars = TIERS.slice(1).map(([k, name]) => `<div class="bar"><span class="n">${name}</span><div class="track">
+    <div class="fill" style="width:${100 * n.tiers[k]}%"></div>${pt ? `<div class="tick" style="left:${100 * pt[k]}%" title="parent"></div>` : ""}</div>
+    <span class="val">${pct(n.tiers[k])}${deltaHTML(n.tiers[k], pt && pt[k])}</span></div>`).join("");
+  const mix = Object.entries(EMO).map(([k, [e, l]]) => `<div><div class="e">${e}</div><div class="c">${n.counts[k]}</div>
+    <div class="l">${l}</div>${pc ? `<div class="d">${deltaHTML(n.counts[k], pc[k], false, k !== "ok")}</div>` : ""}</div>`).join("");
+  const ptype = Object.entries(d.per_type).map(([ty, v]) => `<tr><td>${ty}</td><td>${v.real}</td><td>${v.predicted}</td><td>${v.matched}</td></tr>`).join("");
+  const diff = d.diff.map(([m, l]) => `<div class="${m === "+" ? "a" : m === "-" ? "r" : "s"}">${m === "+" ? "+ " : m === "-" ? "− " : "  "}${esc(l) || "&nbsp;"}</div>`).join("");
+  const adds = d.diff.filter(x => x[0] === "+").length, rems = d.diff.filter(x => x[0] === "-").length;
+  const les = d.lessons ? `<ul class="lessons">${d.lessons.text.split("\n").filter(s => s.trim()).map(s => `<li>${esc(s.replace(/^[-*•]\s*/, ""))}</li>`).join("")}</ul>`
+    : `<p class="none">${n.gen && n.gen <= 4 ? "No distilled lessons yet: for generations 1–4 the optimiser read only the raw knowledge log." : "—"}</p>`;
+  const partPill = n.part ? `<span class="pill">${esc(n.part)}</span>` : "";
+  const cost = n.cost_match ? `<span class="pill">~$${n.cost_match} / match</span>` : "";
+  const checks = (d.checks || []).length ? `<div class="card pane full"><h3 style="margin:0 0 8px;font-size:15px">🎥 What the agent reported (${d.checks.length})</h3>
+    <ul class="lessons">${d.checks.map(c => `<li>${esc(c)}</li>`).join("")}</ul></div>` : "";
+  document.getElementById("detail").innerHTML = `
+  <div class="card pane">
+    <div class="top"><h2>${title}</h2>${partPill}${pill}${cost}</div>
+    <div class="big">${pct(n.tiers.overall)}${deltaHTML(n.tiers.overall, pt && pt.overall)}<span class="delta flat" style="font-weight:500">overall${pt ? " vs parent" : ""}</span></div>
+    <div class="bars">${bars}</div>
+    <div class="mix">${mix}</div>
+    ${d.conjecture ? `<div class="sec"><h3>🧪 Conjecture</h3><p>${esc(d.conjecture)}</p></div>
+    <div class="sec"><h3>🔧 Change</h3><p>${esc(n.change)}</p></div>
+    <div class="sec"><h3>🎯 Predicted vs measured</h3><div class="pvm"><div>${esc(d.prediction)}</div>
+      <div>Overall ${pct(pt && pt.overall)} → <b>${pct(n.tiers.overall)}</b>${deltaHTML(n.tiers.overall, pt && pt.overall)}<br>
+      ❌ invented ${pc ? pc.invented + " → " : ""}<b>${n.counts.invented}</b><br>⚠️ missed ${pc ? pc.missed + " → " : ""}<b>${n.counts.missed}</b><br>
+      AI events ${n.predicted} vs scout ${n.real}${n.confirm != null ? `<br>2nd run: ${pct(n.confirm)}` : ""}</div></div></div>` :
+    `<div class="sec"><h3>🧪 The starting point</h3><p>${esc(n.label)}: no conjecture yet. Everything after this was discovered by the loop.</p></div>`}
+    <div class="sec"><h3>Per action (scout / AI / matched)</h3><table><tr><th></th><th>scout</th><th>AI</th><th>matched</th></tr>${ptype}</table></div>
+  </div>
+  <div class="card pane">
+    <video id="vid" src="evo5data/match.mp4" preload="metadata" controls playsinline></video>
+    <div class="chips" id="chips">${[["errors", "all errors"], ["all", "everything"], ["invented", "❌ invented"], ["missed", "⚠️ missed"], ["wrong_action", "🏷️ wrong action"], ["ok", "✅ found"]]
+      .map(([k, l]) => `<button data-f="${k}" class="${FILTER === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <div class="ev" style="cursor:default;color:var(--muted);font-size:12px"><span>time</span><span></span><span>AI said</span><span>scout logged</span></div>
+    <div id="events"></div>
+  </div>
+  <div class="card pane"><h3 style="margin:0 0 8px;font-size:15px">📝 ${esc(d.diff_label || "Prompt")} ${n.gen ? `vs its parent: <span class="up">+${adds}</span> <span class="down">−${rems}</span> lines` : ""}</h3><div class="diff">${diff}</div></div>
+  <div class="card pane"><h3 style="margin:0 0 8px;font-size:15px">📚 Knowledge it was reading${d.lessons ? ` (lessons written after gen ${d.lessons.after_gen})` : ""}</h3>${les}
+    ${d.input ? `<p class="small" style="margin-top:10px"><a href="${d.input}" target="_blank">Exactly what the agent was briefed with →</a></p>` : ""}</div>${checks}`;
+  renderEvents();
+  document.getElementById("chips").onclick = e => { const f = e.target.dataset.f; if (!f) return; FILTER = f;
+    [...e.currentTarget.children].forEach(b => b.classList.toggle("on", b.dataset.f === f)); renderEvents(); };
+  document.getElementById("events").onclick = e => { const row = e.target.closest(".ev"); if (!row || !row.dataset.t) return;
+    const v = document.getElementById("vid"); v.currentTime = Math.max(0, +row.dataset.t - 2); v.play(); };
+}
+
+async function load(first) {
+  const idx = await (await fetch(`evo5data/index.json?${Date.now()}`)).json();
+  const changed = !IDX || JSON.stringify(idx.nodes.map(n => n.id + n.verdict)) !== JSON.stringify(IDX.nodes.map(n => n.id + n.verdict));
+  IDX = idx;
+  if (first) { const best = IDX.nodes.find(n => n.id === IDX.best) || IDX.nodes[IDX.nodes.length - 1]; select(best.id); }
+  else if (changed) drawGraph();
+}
+load(true); setInterval(() => load(false), 120000);
+</script></body></html>
